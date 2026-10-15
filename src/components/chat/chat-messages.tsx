@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { useEffect, useRef } from "react";
 import type { ChatMessage, QuickPrompt } from "./types";
 
@@ -28,8 +29,15 @@ export function ChatMessages({
   if (messages.length === 0) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center px-4 py-8 text-center">
-        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500 font-black text-2xl text-zinc-950 shadow-lg shadow-emerald-500/20">
-          Z
+        <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-2xl border border-zinc-800/80 bg-zinc-900/60 p-2 shadow-xl shadow-emerald-500/10 backdrop-blur-sm">
+          <Image
+            src="/logo-icon.png"
+            alt="Mascote ZUCK"
+            width={80}
+            height={80}
+            priority
+            className="h-full w-full object-contain drop-shadow-[0_8px_20px_rgba(16,185,129,0.25)]"
+          />
         </div>
         <h2 className="text-xl font-bold tracking-tight text-zinc-100 flex items-center gap-2">
           Olá! Eu sou o ZUCK
@@ -81,8 +89,14 @@ export function ChatMessages({
             >
               {!isUser && (
                 <div className="mb-1 flex items-center gap-1.5 text-xs font-bold text-emerald-400">
-                  <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-emerald-500 text-[9px] font-black text-zinc-950">
-                    Z
+                  <span className="flex h-4 w-4 items-center justify-center rounded-full border border-emerald-500/40 bg-zinc-950 p-0.5">
+                    <Image
+                      src="/logo-icon.png"
+                      alt=""
+                      width={16}
+                      height={16}
+                      className="h-full w-full object-contain"
+                    />
                   </span>
                   ZUCK
                 </div>

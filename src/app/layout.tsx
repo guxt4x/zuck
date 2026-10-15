@@ -15,6 +15,22 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "ZUCK — Seu copiloto financeiro",
   description: "Controle suas finanças conversando: registre gastos, consulte saldo e acompanhe metas.",
+  applicationName: "ZUCK",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "ZUCK",
+  },
+  icons: {
+    icon: [
+      { url: "/icon.png" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
 };
 
 export const viewport: Viewport = {

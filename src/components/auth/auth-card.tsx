@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 
 export interface AuthUser {
@@ -58,8 +59,15 @@ export function AuthCard({ onSuccess, onContinueGuest }: AuthCardProps) {
       <div className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-900/90 p-6 shadow-2xl backdrop-blur-xl sm:p-8">
         {/* Header da Logo e Título */}
         <div className="mb-6 flex flex-col items-center text-center">
-          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500 font-black text-xl text-zinc-950 shadow-lg shadow-emerald-500/25">
-            Z
+          <div className="mb-3 flex h-16 w-16 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-950/70 p-2 shadow-xl shadow-emerald-500/10">
+            <Image
+              src="/logo-icon.png"
+              alt="Logo ZUCK"
+              width={64}
+              height={64}
+              priority
+              className="h-full w-full object-contain drop-shadow-[0_4px_16px_rgba(56,189,248,0.25)]"
+            />
           </div>
           <h2 className="text-xl font-bold tracking-tight text-zinc-100">
             {mode === "login" ? "Acesse sua conta no ZUCK" : "Crie sua conta no ZUCK"}

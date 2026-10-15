@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { AuthCard, type AuthUser } from "@/components/auth/auth-card";
 import { ChatContainer } from "@/components/chat/chat-container";
@@ -82,8 +83,15 @@ export default function Home() {
       {/* Top Header Responsivo */}
       <header className="flex h-14 shrink-0 items-center justify-between border-b border-zinc-800/80 bg-zinc-950/90 px-3.5 backdrop-blur-md sm:px-6">
         <div className="flex items-center gap-2.5 sm:gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500 font-black text-sm text-zinc-950 shadow-md shadow-emerald-500/20">
-            Z
+          <div className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-800 bg-zinc-900/80 p-1 shadow-md shadow-emerald-500/10">
+            <Image
+              src="/logo-icon.png"
+              alt=""
+              width={36}
+              height={36}
+              priority
+              className="h-full w-full object-contain"
+            />
           </div>
           <div>
             <div className="flex items-center gap-1.5 sm:gap-2">
