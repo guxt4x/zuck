@@ -48,7 +48,7 @@ export function ChatMessages({
                 key={item.id}
                 type="button"
                 onClick={() => onSelectQuickPrompt(item.prompt)}
-                className="flex items-center justify-start rounded-xl border border-zinc-800 bg-zinc-900/80 p-3 text-left text-xs font-medium text-zinc-200 transition-all hover:border-emerald-500/50 hover:bg-emerald-500/10 hover:text-emerald-300"
+                className="flex min-h-[44px] items-center justify-start rounded-xl border border-zinc-800 bg-zinc-900/80 p-3 text-left text-xs font-medium text-zinc-200 transition-all hover:border-emerald-500/50 hover:bg-emerald-500/10 hover:text-emerald-300 active:scale-[0.98]"
               >
                 {item.label}
               </button>
@@ -61,7 +61,7 @@ export function ChatMessages({
 
   return (
     <div
-      className="flex flex-1 flex-col space-y-4 overflow-y-auto px-4 py-6"
+      className="flex flex-1 flex-col space-y-4 overflow-y-auto px-3.5 py-4 sm:px-6 sm:py-6"
       aria-live="polite"
       aria-label="Histórico de mensagens"
     >
@@ -73,7 +73,7 @@ export function ChatMessages({
             className={`flex w-full ${isUser ? "justify-end" : "justify-start"}`}
           >
             <div
-              className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-xs sm:max-w-[75%] ${
+              className={`max-w-[90%] rounded-2xl px-3.5 py-2.5 text-sm shadow-xs sm:max-w-[75%] sm:px-4 sm:py-3 ${
                 isUser
                   ? "bg-emerald-500 text-zinc-950 font-medium"
                   : "border border-zinc-800 bg-zinc-900 text-zinc-100 shadow-sm"

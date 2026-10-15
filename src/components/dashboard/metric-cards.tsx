@@ -10,7 +10,7 @@ export function MetricCards({ summary }: MetricCardsProps) {
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
       {/* Card 1: Saldo Disponível */}
-      <div className="relative overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/70 p-5 backdrop-blur-md transition-all hover:border-emerald-500/40">
+      <div className="relative overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/70 p-4 sm:p-5 backdrop-blur-md transition-all hover:border-emerald-500/40">
         <div className="flex items-center justify-between">
           <span className="text-xs font-medium uppercase tracking-wider text-zinc-400">
             Saldo Disponível
@@ -40,7 +40,7 @@ export function MetricCards({ summary }: MetricCardsProps) {
       </div>
 
       {/* Card 2: Total de Receitas */}
-      <div className="relative overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/70 p-5 backdrop-blur-md transition-all hover:border-emerald-500/40">
+      <div className="relative overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/70 p-4 sm:p-5 backdrop-blur-md transition-all hover:border-emerald-500/40">
         <div className="flex items-center justify-between">
           <span className="text-xs font-medium uppercase tracking-wider text-zinc-400">
             Entradas / Receitas
@@ -72,7 +72,7 @@ export function MetricCards({ summary }: MetricCardsProps) {
       </div>
 
       {/* Card 3: Total de Despesas */}
-      <div className="relative overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/70 p-5 backdrop-blur-md transition-all hover:border-rose-500/40">
+      <div className="relative overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/70 p-4 sm:p-5 backdrop-blur-md transition-all hover:border-rose-500/40">
         <div className="flex items-center justify-between">
           <span className="text-xs font-medium uppercase tracking-wider text-zinc-400">
             Saídas / Despesas

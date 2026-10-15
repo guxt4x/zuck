@@ -78,30 +78,30 @@ export default function Home() {
   }
 
   return (
-    <div className="flex h-screen flex-col bg-zinc-950 text-zinc-100">
-      {/* Top Header Moderno */}
-      <header className="flex h-14 shrink-0 items-center justify-between border-b border-zinc-800/80 bg-zinc-950/80 px-4 backdrop-blur-md sm:px-6">
-        <div className="flex items-center gap-3">
+    <div className="flex h-[100dvh] min-h-[100dvh] flex-col bg-zinc-950 text-zinc-100 antialiased">
+      {/* Top Header Responsivo */}
+      <header className="flex h-14 shrink-0 items-center justify-between border-b border-zinc-800/80 bg-zinc-950/90 px-3.5 backdrop-blur-md sm:px-6">
+        <div className="flex items-center gap-2.5 sm:gap-3">
           <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500 font-black text-sm text-zinc-950 shadow-md shadow-emerald-500/20">
             Z
           </div>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               <h1 className="text-sm font-bold tracking-tight text-zinc-100">
                 ZUCK
               </h1>
-              <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
+              <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-400">
                 Copiloto
               </span>
             </div>
-            <p className="text-[11px] text-zinc-400 hidden sm:block">
+            <p className="text-[11px] text-zinc-400 hidden md:block">
               Controle financeiro inteligente e conversacional
             </p>
           </div>
         </div>
 
-        {/* Alternador de Visualização (Dashboard / Chat) */}
-        <div className="flex items-center rounded-xl border border-zinc-800 bg-zinc-900/90 p-0.5 text-xs font-medium">
+        {/* Alternador de Abas Desktop (Centralizado) */}
+        <div className="hidden sm:flex items-center rounded-xl border border-zinc-800 bg-zinc-900/90 p-0.5 text-xs font-medium">
           <button
             onClick={() => setActiveTab("dashboard")}
             className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 transition-all ${
@@ -124,22 +124,22 @@ export default function Home() {
           </button>
         </div>
 
-        {/* User Profile e Logout */}
-        <div className="flex items-center gap-3">
+        {/* Perfil e Ações do Usuário */}
+        <div className="flex items-center gap-2 sm:gap-3">
           {currentUser ? (
             <div className="flex items-center gap-2">
-              <div className="hidden md:flex flex-col text-right">
+              <div className="hidden lg:flex flex-col text-right">
                 <span className="text-xs font-medium text-zinc-200">
                   {currentUser.name || currentUser.email.split("@")[0]}
                 </span>
-                <span className="text-[10px] text-emerald-400 truncate max-w-[140px]">
+                <span className="text-[10px] text-emerald-400 truncate max-w-[130px]">
                   {currentUser.email}
                 </span>
               </div>
               <button
                 onClick={handleLogout}
                 title="Sair da conta"
-                className="rounded-lg border border-zinc-800 bg-zinc-900 px-2.5 py-1 text-xs font-medium text-zinc-400 hover:border-zinc-700 hover:text-zinc-200 transition-colors"
+                className="rounded-lg border border-zinc-800 bg-zinc-900/90 px-2.5 py-1 text-xs font-medium text-zinc-400 hover:border-zinc-700 hover:text-zinc-200 transition-colors"
               >
                 Sair
               </button>
@@ -149,30 +149,68 @@ export default function Home() {
               onClick={() => setIsGuest(false)}
               className="rounded-lg bg-emerald-500 px-3 py-1 text-xs font-bold text-zinc-950 shadow-xs shadow-emerald-500/20 hover:bg-emerald-400 transition-colors"
             >
-              Fazer login
+              Entrar
             </button>
           )}
         </div>
       </header>
 
-      {/* Conteúdo Principal */}
+      {/* Conteúdo Principal Adaptativo */}
       <main className="flex flex-1 overflow-hidden">
-        {activeTab === "dashboard" ? (
-          <div className="flex flex-1 flex-col overflow-y-auto">
-            <DashboardView
-              refreshTrigger={refreshTrigger}
-              onSelectPrompt={handleSelectPromptFromDashboard}
-            />
-          </div>
-        ) : (
-          <div className="flex flex-1 flex-col overflow-hidden">
-            <ChatContainer
-              onActionCompleted={handleActionCompleted}
-              externalInput={chatPrompt}
-            />
-          </div>
-        )}
+        <div className="mx-auto flex h-full w-full max-w-6xl flex-1 flex-col overflow-hidden">
+          {activeTab === "dashboard" ? (
+            <div className="flex flex-1 flex-col overflow-y-auto">
+              <DashboardView
+                refreshTrigger={refreshTrigger}
+                onSelectPrompt={handleSelectPromptFromDashboard}
+              />
+            </div>
+          ) : (
+            <div className="flex flex-1 flex-col overflow-hidden">
+              <ChatContainer
+                onActionCompleted={handleActionCompleted}
+                externalInput={chatPrompt}
+              />
+            </div>
+          )}
+        </div>
       </main>
+
+      {/* Barra de Navegação Inferior para Mobile (Thumb Ergonomics) */}
+      <nav
+        aria-label="Navegação móvel"
+        className="flex sm:hidden shrink-0 items-center justify-around border-t border-zinc-800/90 bg-zinc-950/95 pb-safe px-3 pt-1 backdrop-blur-lg"
+      >
+        <button
+          onClick={() => setActiveTab("dashboard")}
+          className={`flex flex-1 flex-col items-center justify-center py-2 text-xs font-semibold transition-all active:scale-95 ${
+            activeTab === "dashboard"
+              ? "text-emerald-400"
+              : "text-zinc-500 hover:text-zinc-300"
+          }`}
+        >
+          <span className="text-base">📊</span>
+          <span className="mt-0.5 text-[11px]">Painel</span>
+          {activeTab === "dashboard" && (
+            <span className="mt-0.5 h-1 w-6 rounded-full bg-emerald-400 shadow-xs shadow-emerald-400/50" />
+          )}
+        </button>
+
+        <button
+          onClick={() => setActiveTab("chat")}
+          className={`flex flex-1 flex-col items-center justify-center py-2 text-xs font-semibold transition-all active:scale-95 ${
+            activeTab === "chat"
+              ? "text-emerald-400"
+              : "text-zinc-500 hover:text-zinc-300"
+          }`}
+        >
+          <span className="text-base">💬</span>
+          <span className="mt-0.5 text-[11px]">Chat com ZUCK</span>
+          {activeTab === "chat" && (
+            <span className="mt-0.5 h-1 w-6 rounded-full bg-emerald-400 shadow-xs shadow-emerald-400/50" />
+          )}
+        </button>
+      </nav>
     </div>
   );
 }

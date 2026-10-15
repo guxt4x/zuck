@@ -128,7 +128,7 @@ export function AuthCard({ onSuccess, onContinueGuest }: AuthCardProps) {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Ex: Maria"
-                className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 transition-colors focus:border-emerald-500 focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
+                className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-base sm:text-sm text-zinc-100 placeholder-zinc-600 transition-colors focus:border-emerald-500 focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
               />
             </div>
           )}
@@ -148,7 +148,7 @@ export function AuthCard({ onSuccess, onContinueGuest }: AuthCardProps) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="seu@email.com"
-              className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 transition-colors focus:border-emerald-500 focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
+              className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-base sm:text-sm text-zinc-100 placeholder-zinc-600 transition-colors focus:border-emerald-500 focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
             />
           </div>
 
@@ -167,14 +167,14 @@ export function AuthCard({ onSuccess, onContinueGuest }: AuthCardProps) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 transition-colors focus:border-emerald-500 focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
+              className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-base sm:text-sm text-zinc-100 placeholder-zinc-600 transition-colors focus:border-emerald-500 focus:outline-hidden focus:ring-1 focus:ring-emerald-500"
             />
           </div>
 
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full cursor-pointer rounded-xl bg-emerald-500 py-2.5 text-sm font-bold text-zinc-950 shadow-md shadow-emerald-500/20 transition-all hover:bg-emerald-400 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full min-h-[46px] cursor-pointer rounded-xl bg-emerald-500 py-2.5 text-sm font-bold text-zinc-950 shadow-md shadow-emerald-500/20 transition-all hover:bg-emerald-400 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isLoading ? (
               <span className="flex items-center justify-center gap-2">
