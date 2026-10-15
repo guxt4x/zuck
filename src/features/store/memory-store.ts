@@ -25,10 +25,29 @@ export interface StoredGoal {
   updatedAt: Date;
 }
 
+export interface StoredUser {
+  id: string;
+  name?: string | null;
+  email: string;
+  passwordHash?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface StoredSession {
+  id: string;
+  userId: string;
+  token: string;
+  expiresAt: Date;
+  createdAt: Date;
+}
+
 // Armazenamento em memória com isolamento estrito por usuário (fallback seguro)
 const globals = globalThis as typeof globalThis & {
   __zuckMemoryTransactions?: Map<string, StoredTransaction[]>;
   __zuckMemoryGoals?: Map<string, StoredGoal[]>;
+  __zuckMemoryUsers?: Map<string, StoredUser>;
+  __zuckMemorySessions?: Map<string, StoredSession>;
 };
 
 if (!globals.__zuckMemoryTransactions) {
@@ -37,9 +56,56 @@ if (!globals.__zuckMemoryTransactions) {
 if (!globals.__zuckMemoryGoals) {
   globals.__zuckMemoryGoals = new Map();
 }
+if (!globals.__zuckMemoryUsers) {
+  globals.__zuckMemoryUsers = new Map();
+}
+if (!globals.__zuckMemorySessions) {
+  globals.__zuckMemorySessions = new Map();
+}
 
 const transactionsMap = globals.__zuckMemoryTransactions;
 const goalsMap = globals.__zuckMemoryGoals;
+const usersMap = globals.__zuckMemoryUsers;
+const sessionsMap = globals.__zuckMemorySessions;
+
+export function getMemoryUserByEmail(email: string): StoredUser | null {
+  const normalized = email.toLowerCase().trim();
+  for (const user of usersMap.values()) {
+    if (user.email.toLowerCase().trim() === normalized) {
+      return user;
+    }
+  }
+  return null;
+}
+
+export function getMemoryUserById(id: string): StoredUser | null {
+  return usersMap.get(id) || null;
+}
+
+export function saveMemoryUser(user: StoredUser): StoredUser {
+  usersMap.set(user.id, user);
+  return user;
+}
+
+export function saveMemorySession(session: StoredSession): StoredSession {
+  sessionsMap.set(session.token, session);
+  return session;
+}
+
+export function getMemorySessionByToken(token: string): StoredSession | null {
+  const session = sessionsMap.get(token);
+  if (!session) return null;
+  if (session.expiresAt.getTime() <= Date.now()) {
+    sessionsMap.delete(token);
+    return null;
+  }
+  return session;
+}
+
+export function deleteMemorySession(token: string): boolean {
+  return sessionsMap.delete(token);
+}
+
 
 export function getMemoryTransactions(userId: string): StoredTransaction[] {
   return transactionsMap.get(userId) || [];

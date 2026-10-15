@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     const { message, history } = chatRequestSchema.parse(json);
 
     // Identificação de sessão segura por usuário isolado
-    const { userId, isNew } = resolveUserSession(req);
+    const { userId, isNew } = await resolveUserSession(req);
 
     // O assistente processa a mensagem via IA (Groq tool calling) ou fallback determinístico
     const reply = await processChatMessage(userId, message, history);

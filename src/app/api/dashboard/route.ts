@@ -5,7 +5,7 @@ import { resolveUserSession, SESSION_COOKIE_NAME, SESSION_COOKIE_OPTIONS } from 
 
 export async function GET(req: Request) {
   try {
-    const { userId, isNew } = resolveUserSession(req);
+    const { userId, isNew } = await resolveUserSession(req);
 
     const [summary, transactions, goals] = await Promise.all([
       getPeriodSummary(userId),

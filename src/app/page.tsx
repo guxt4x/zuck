@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { AuthCard, type AuthUser } from "@/components/auth/auth-card";
 import { ChatContainer } from "@/components/chat/chat-container";
 import { DashboardView } from "@/components/dashboard/dashboard-view";
 
@@ -8,6 +9,28 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<"dashboard" | "chat">("dashboard");
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [chatPrompt, setChatPrompt] = useState("");
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
+  const [isGuest, setIsGuest] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        const res = await fetch("/api/auth/me");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.isAuthenticated && data.user) {
+            setCurrentUser(data.user);
+          }
+        }
+      } catch {
+        // Modo offline ou erro de rede
+      } finally {
+        setIsCheckingAuth(false);
+      }
+    }
+    checkAuth();
+  }, []);
 
   const handleActionCompleted = () => {
     // Sincroniza o dashboard imediatamente quando o bot registra uma ação
@@ -18,6 +41,41 @@ export default function Home() {
     setChatPrompt(prompt);
     setActiveTab("chat");
   };
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch {
+      // Ignora erro de rede no logout
+    }
+    setCurrentUser(null);
+    setIsGuest(false);
+  };
+
+  if (isCheckingAuth) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-zinc-950 text-zinc-400">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent"></div>
+          <span className="text-xs font-medium tracking-wide">Iniciando ZUCK...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentUser && !isGuest) {
+    return (
+      <div className="min-h-screen bg-zinc-950 text-zinc-100">
+        <AuthCard
+          onSuccess={(user) => {
+            setCurrentUser(user);
+            setRefreshTrigger((prev) => prev + 1);
+          }}
+          onContinueGuest={() => setIsGuest(true)}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen flex-col bg-zinc-950 text-zinc-100">
@@ -66,12 +124,34 @@ export default function Home() {
           </button>
         </div>
 
-        {/* Status Badge */}
-        <div className="hidden sm:flex items-center gap-2">
-          <span className="flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-400">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            Online
-          </span>
+        {/* User Profile e Logout */}
+        <div className="flex items-center gap-3">
+          {currentUser ? (
+            <div className="flex items-center gap-2">
+              <div className="hidden md:flex flex-col text-right">
+                <span className="text-xs font-medium text-zinc-200">
+                  {currentUser.name || currentUser.email.split("@")[0]}
+                </span>
+                <span className="text-[10px] text-emerald-400 truncate max-w-[140px]">
+                  {currentUser.email}
+                </span>
+              </div>
+              <button
+                onClick={handleLogout}
+                title="Sair da conta"
+                className="rounded-lg border border-zinc-800 bg-zinc-900 px-2.5 py-1 text-xs font-medium text-zinc-400 hover:border-zinc-700 hover:text-zinc-200 transition-colors"
+              >
+                Sair
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setIsGuest(false)}
+              className="rounded-lg bg-emerald-500 px-3 py-1 text-xs font-bold text-zinc-950 shadow-xs shadow-emerald-500/20 hover:bg-emerald-400 transition-colors"
+            >
+              Fazer login
+            </button>
+          )}
         </div>
       </header>
 
