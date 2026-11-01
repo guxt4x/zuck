@@ -133,4 +133,39 @@ describe("processChatMessage (Chat Agent Processor)", () => {
       })
     );
   });
+
+  it("fluxo apagar tudo: pede confirmação se usuário pedir para apagar tudo", async () => {
+    const reply = await processChatMessage("usr_reset", "apagar tudo");
+    expect(reply).toContain("Tem certeza de que deseja apagar");
+  });
+
+  it("fluxo apagar tudo: executa exclusão quando usuário confirma com 'sim'", async () => {
+    // 1. Registra um gasto prévio
+    await processChatMessage("usr_reset", "Gastei 50 no mercado");
+
+    // 2. Envia 'sim' com histórico de confirmação pendente
+    const history = [
+      { role: "user" as const, content: "apagar tudo" },
+      {
+        role: "assistant" as const,
+        content: "⚠️ Tem certeza de que deseja apagar todas as suas movimentações e zerar seus registros? Responda com 'sim' para confirmar.",
+      },
+    ];
+
+    const reply = await processChatMessage("usr_reset", "sim", history);
+    expect(reply).toContain("Todas as suas movimentações foram apagadas e seu saldo foi zerado");
+
+    // 3. Verifica que o saldo agora está zerado
+    const balanceReply = await processChatMessage("usr_reset", "Qual meu saldo atual?");
+    expect(balanceReply).toContain("R$ 0,00");
+  });
+
+  it("fluxo apagar tudo: executa imediatamente se o usuário já incluir confirmação explícita", async () => {
+    await processChatMessage("usr_direct_reset", "Recebi 1000 de salário");
+    const reply = await processChatMessage("usr_direct_reset", "quero apagar tudo, confirmo");
+    expect(reply).toContain("Todas as suas movimentações foram apagadas e seu saldo foi zerado");
+
+    const balanceReply = await processChatMessage("usr_direct_reset", "Qual meu saldo atual?");
+    expect(balanceReply).toContain("R$ 0,00");
+  });
 });

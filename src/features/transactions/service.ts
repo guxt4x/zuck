@@ -9,10 +9,12 @@ import {
 } from "./schemas";
 import { formatCentsToBrl } from "./money";
 import {
+  clearMemoryTransactions,
   deleteMemoryTransaction,
   getMemoryTransactions,
   saveMemoryTransaction,
 } from "../store/memory-store";
+import { clearAllGoals } from "../goals/service";
 
 export interface BalanceSummary {
   totalIncomeCents: number;
@@ -90,28 +92,14 @@ export async function registerExpense(
   try {
     const db = dbClient ?? getDb();
     const categoryId = await resolveCategoryId(db, input.categorySlug, userId);
-    const [tx] = await db
-      .insert(transactions)
-      .values({
-        userId,
-        type: "expense",
-        amountCents: input.amount,
-        description: input.description,
-        categoryId,
-        date: input.date,
-      })
-      .returning();
-
+    const [tx] = await db.insert(transactions).values({
+      userId, type: "expense", amountCents: input.amount, description: input.description, categoryId, date: input.date,
+    }).returning();
     return { ...tx, formattedAmount: formatCentsToBrl(tx.amountCents) };
   } catch {
     const memoryTx = saveMemoryTransaction(userId, {
-      userId,
-      type: "expense",
-      amountCents: input.amount,
-      description: input.description,
-      categoryId: input.categorySlug,
-      categorySlug: input.categorySlug,
-      date: input.date,
+      userId, type: "expense", amountCents: input.amount, description: input.description,
+      categoryId: input.categorySlug, categorySlug: input.categorySlug, date: input.date,
     });
     return { ...memoryTx, formattedAmount: formatCentsToBrl(memoryTx.amountCents) };
   }
@@ -128,28 +116,14 @@ export async function registerIncome(
   try {
     const db = dbClient ?? getDb();
     const categoryId = await resolveCategoryId(db, input.categorySlug, userId);
-    const [tx] = await db
-      .insert(transactions)
-      .values({
-        userId,
-        type: "income",
-        amountCents: input.amount,
-        description: input.description,
-        categoryId,
-        date: input.date,
-      })
-      .returning();
-
+    const [tx] = await db.insert(transactions).values({
+      userId, type: "income", amountCents: input.amount, description: input.description, categoryId, date: input.date,
+    }).returning();
     return { ...tx, formattedAmount: formatCentsToBrl(tx.amountCents) };
   } catch {
     const memoryTx = saveMemoryTransaction(userId, {
-      userId,
-      type: "income",
-      amountCents: input.amount,
-      description: input.description,
-      categoryId: input.categorySlug,
-      categorySlug: input.categorySlug,
-      date: input.date,
+      userId, type: "income", amountCents: input.amount, description: input.description,
+      categoryId: input.categorySlug, categorySlug: input.categorySlug, date: input.date,
     });
     return { ...memoryTx, formattedAmount: formatCentsToBrl(memoryTx.amountCents) };
   }
@@ -284,14 +258,52 @@ export async function getPeriodSummary(
   return { ...balance, topCategory, categories: categoriesExpenses };
 }
 
-export async function deleteTransaction(
+export async function clearAllTransactions(
   userId: string,
-  transactionId: string,
   confirmed = false,
   dbClient?: ReturnType<typeof getDb>
 ) {
   if (!userId || !userId.trim()) throw new Error("Usuário não autenticado.");
-  if (!transactionId || !transactionId.trim()) throw new Error("ID da movimentação é obrigatório.");
+
+  if (!confirmed) {
+    return {
+      status: "confirmation_required",
+      message: "⚠️ Confirmação necessária: Tem certeza que deseja apagar todas as suas movimentações e zerar seus registros?",
+      all: true,
+    };
+  }
+
+  await clearAllGoals(userId, dbClient).catch(() => {});
+
+  try {
+    const db = dbClient ?? getDb();
+    const deleted = await db.delete(transactions).where(eq(transactions.userId, userId)).returning();
+    clearMemoryTransactions(userId);
+    return {
+      status: "deleted_all",
+      message: `Todas as movimentações foram apagadas com sucesso (${deleted.length} registros removidos). O saldo foi zerado.`,
+      count: deleted.length,
+    };
+  } catch {
+    const count = clearMemoryTransactions(userId);
+    return {
+      status: "deleted_all",
+      message: `Todas as movimentações foram apagadas com sucesso (${count} registros removidos). O saldo foi zerado.`,
+      count,
+    };
+  }
+}
+
+export async function deleteTransaction(
+  userId: string,
+  transactionId?: string,
+  confirmed = false,
+  dbClient?: ReturnType<typeof getDb>
+) {
+  if (!userId || !userId.trim()) throw new Error("Usuário não autenticado.");
+  if (!transactionId || transactionId === "all" || transactionId === "todas" || transactionId === "*") {
+    return await clearAllTransactions(userId, confirmed, dbClient);
+  }
 
   if (!confirmed) {
     return {

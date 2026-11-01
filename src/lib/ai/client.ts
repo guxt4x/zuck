@@ -14,7 +14,10 @@ Regras inegociáveis:
 3. Para criar_meta, se o usuário não especificar uma data exata no formato YYYY-MM-DD (ex: 'para dezembro' ou 'em 6 meses'), deduza uma data futura plausível (ex: ano corrente ou subsequente).
 4. Seja direto, amigável e conciso em português do Brasil (BRL).
 5. Se não houver dados registrados para o período, informe honestamente que não há registros.
-6. Para exclusões de movimentação, exija confirmação explícita do usuário antes de confirmar a exclusão.
+6. Exclusão e zerar dados:
+- Para apagar tudo / zerar tudo: se o usuário ainda NÃO confirmou, pergunte: "Tem certeza de que deseja apagar todas as suas movimentações e zerar seus registros? Responda 'sim' para confirmar."
+- Quando o usuário confirmar (ex: 'sim', 'confirmo', 'pode apagar'), invoque IMEDIATAMENTE a ferramenta 'excluir_movimentacao' com { all: true, confirmed: true }. Nunca pergunte novamente se já confirmou.
+- Para apagar uma movimentação específica, invoque 'excluir_movimentacao' com { transactionId, confirmed: true } após a confirmação.
 7. Mantenha as respostas curtas e claras.`;
 
 interface GroqMessage {
@@ -31,16 +34,59 @@ interface GroqMessage {
   tool_call_id?: string;
 }
 
+function isPendingDeleteConfirmation(history: ChatHistoryItem[]): boolean {
+  if (!history?.length) return false;
+  const last = [...history].reverse().find((h) => h.role === "assistant");
+  if (!last) return false;
+  const t = last.content.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  return (t.includes("certeza") || t.includes("confirm") || t.includes("deseja")) &&
+    (t.includes("apagar") || t.includes("zerar") || t.includes("excluir") || t.includes("limpar"));
+}
+
+function isAffirmativeConfirmation(msg: string): boolean {
+  const n = msg.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  return ["sim", "s", "confirmo", "sim!", "sim, confirmo"].includes(n) ||
+    n.startsWith("sim,") || n.startsWith("sim ") || n.includes("pode apagar") ||
+    n.includes("pode zerar") || n.includes("com certeza") || n.includes("quero apagar") || n.includes("quero zerar");
+}
+
+function isExplicitDeleteAllRequest(msg: string): boolean {
+  const n = msg.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const hasVerb = ["apagar", "apaga", "zerar", "zera", "limpar", "limpa", "excluir", "exclui", "deletar", "deleta"].some((v) => n.includes(v));
+  const hasScope = ["tudo", "todas", "todos", "historico", "registros", "movimentacoes"].some((s) => n.includes(s));
+  return hasVerb && hasScope;
+}
+
 export async function processChatMessage(
   userId: string,
   userMessage: string,
   history: ChatHistoryItem[] = []
 ): Promise<string> {
+  // Confirmação explícita de exclusão/zerar tudo pendente
+  if (isPendingDeleteConfirmation(history) && isAffirmativeConfirmation(userMessage)) {
+    try {
+      await executeAiTool("excluir_movimentacao", { all: true, confirmed: true }, userId);
+      return "✅ Pronto! Todas as suas movimentações foram apagadas e seu saldo foi zerado com sucesso.";
+    } catch (err) {
+      return `⚠️ Não foi possível apagar: ${err instanceof Error ? err.message : "erro"}`;
+    }
+  }
+
+  // Pedido direto para apagar tudo já confirmado na mesma frase
+  if (isExplicitDeleteAllRequest(userMessage) && isAffirmativeConfirmation(userMessage)) {
+    try {
+      await executeAiTool("excluir_movimentacao", { all: true, confirmed: true }, userId);
+      return "✅ Pronto! Todas as suas movimentações foram apagadas e seu saldo foi zerado com sucesso.";
+    } catch (err) {
+      return `⚠️ Não foi possível apagar: ${err instanceof Error ? err.message : "erro"}`;
+    }
+  }
+
   const apiKey = process.env.GROQ_API_KEY;
   const model = process.env.GROQ_MODEL || "openai/gpt-oss-20b";
 
   if (!apiKey) {
-    return await deterministicFallback(userId, userMessage);
+    return await deterministicFallback(userId, userMessage, history);
   }
 
   try {
@@ -133,14 +179,41 @@ export async function processChatMessage(
     return choice.content || "Entendido.";
   } catch {
     // Se a API externa falhar, recorre ao processador determinístico local
-    return await deterministicFallback(userId, userMessage);
+    return await deterministicFallback(userId, userMessage, history);
   }
 }
 
 /**
  * Fallback determinístico local quando GROQ_API_KEY não estiver disponível.
  */
-async function deterministicFallback(userId: string, message: string): Promise<string> {
+async function deterministicFallback(
+  userId: string,
+  message: string,
+  history: ChatHistoryItem[] = []
+): Promise<string> {
+  // Confirmar exclusão pendente
+  if (isPendingDeleteConfirmation(history) && isAffirmativeConfirmation(message)) {
+    try {
+      await executeAiTool("excluir_movimentacao", { all: true, confirmed: true }, userId);
+      return "✅ Pronto! Todas as suas movimentações foram apagadas e seu saldo foi zerado com sucesso.";
+    } catch (err) {
+      return `⚠️ Não foi possível apagar: ${err instanceof Error ? err.message : "erro"}`;
+    }
+  }
+
+  // Pedir para apagar tudo / zerar tudo
+  if (isExplicitDeleteAllRequest(message)) {
+    if (isAffirmativeConfirmation(message)) {
+      try {
+        await executeAiTool("excluir_movimentacao", { all: true, confirmed: true }, userId);
+        return "✅ Pronto! Todas as suas movimentações foram apagadas e seu saldo foi zerado com sucesso.";
+      } catch (err) {
+        return `⚠️ Não foi possível apagar: ${err instanceof Error ? err.message : "erro"}`;
+      }
+    }
+    return '⚠️ Tem certeza de que deseja apagar todas as suas movimentações e zerar seus registros? Responda com "sim" para confirmar.';
+  }
+
   const lower = message.toLowerCase();
 
   // Intenção: Registrar despesa (ex: "Gastei 35 reais no almoço")

@@ -140,6 +140,13 @@ export function deleteMemoryTransaction(userId: string, transactionId: string): 
   return removed;
 }
 
+export function clearMemoryTransactions(userId: string): number {
+  const current = transactionsMap.get(userId) || [];
+  const count = current.length;
+  transactionsMap.set(userId, []);
+  return count;
+}
+
 export function getMemoryGoals(userId: string): StoredGoal[] {
   return goalsMap.get(userId) || [];
 }
@@ -178,4 +185,11 @@ export function updateMemoryGoal(
   target.updatedAt = new Date();
 
   return target;
+}
+
+export function clearMemoryGoals(userId: string): number {
+  const current = goalsMap.get(userId) || [];
+  const count = current.length;
+  goalsMap.set(userId, []);
+  return count;
 }

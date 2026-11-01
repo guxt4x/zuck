@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { formatCentsToBrl, parseAmountToCents } from "./money";
 import { registerExpenseSchema, registerIncomeSchema } from "./schemas";
-import { calculateBalance, getBalance, registerExpense } from "./service";
+import { calculateBalance, clearAllTransactions, deleteTransaction, getBalance, registerExpense } from "./service";
 
 vi.mock("server-only", () => ({}));
 
@@ -140,5 +140,33 @@ describe("Service layer and security boundaries", () => {
     expect(created.amountCents).toBe(3500);
     expect(created.formattedAmount).toBe("R$ 35,00");
     expect(mockDb.insert).toHaveBeenCalled();
+  });
+
+  it("exige confirmação explícita para zerar todas as movimentações", async () => {
+    const res = await clearAllTransactions("usr_test_clear", false);
+    expect(res.status).toBe("confirmation_required");
+    expect(res.message).toContain("Confirmação necessária");
+  });
+
+  it("zera todas as movimentações com confirmed=true", async () => {
+    await registerExpense("usr_test_clear", { amount: 50, description: "Lanche" });
+    const balanceBefore = await getBalance("usr_test_clear");
+    expect(balanceBefore.totalExpenseCents).toBe(5000);
+
+    const res = await clearAllTransactions("usr_test_clear", true);
+    expect(res.status).toBe("deleted_all");
+
+    const balanceAfter = await getBalance("usr_test_clear");
+    expect(balanceAfter.totalExpenseCents).toBe(0);
+    expect(balanceAfter.formattedBalance).toBe("R$ 0,00");
+  });
+
+  it("deleteTransaction com 'all' ou 'todas' delega para clearAllTransactions", async () => {
+    await registerExpense("usr_test_all_kw", { amount: 80, description: "Jantar" });
+    const res = await deleteTransaction("usr_test_all_kw", "all", true);
+    expect(res.status).toBe("deleted_all");
+
+    const balanceAfter = await getBalance("usr_test_all_kw");
+    expect(balanceAfter.formattedBalance).toBe("R$ 0,00");
   });
 });

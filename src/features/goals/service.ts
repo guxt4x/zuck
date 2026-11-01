@@ -8,6 +8,7 @@ import {
   updateGoalSchema,
 } from "./schemas";
 import {
+  clearMemoryGoals,
   getMemoryGoals,
   saveMemoryGoal,
   updateMemoryGoal,
@@ -161,5 +162,21 @@ export async function updateGoal(
     });
     if (!updated) throw new Error("Meta não encontrada.");
     return formatGoal(updated);
+  }
+}
+
+export async function clearAllGoals(
+  userId: string,
+  dbClient?: ReturnType<typeof getDb>
+): Promise<number> {
+  if (!userId || !userId.trim()) throw new Error("Usuário não autenticado.");
+
+  try {
+    const db = dbClient ?? getDb();
+    const deleted = await db.delete(goals).where(eq(goals.userId, userId)).returning();
+    clearMemoryGoals(userId);
+    return deleted.length;
+  } catch {
+    return clearMemoryGoals(userId);
   }
 }

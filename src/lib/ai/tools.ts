@@ -1,6 +1,7 @@
 import "server-only";
 import { getDb } from "@/db";
 import {
+  clearAllTransactions,
   deleteTransaction,
   getBalance,
   getCategoryExpenses,
@@ -171,17 +172,24 @@ export const AI_TOOLS = [
     type: "function" as const,
     function: {
       name: "excluir_movimentacao",
-      description: "Exclui uma movimentação. Exige confirmação explícita do usuário.",
+      description:
+        "Exclui uma movimentação específica pelo ID ou apaga todas as movimentações (zerar tudo/apagar tudo) quando all=true. Exige confirmação explícita do usuário.",
       parameters: {
         type: "object",
         properties: {
-          transactionId: { type: "string", description: "ID da movimentação a excluir" },
+          transactionId: {
+            type: "string",
+            description: "ID da movimentação a excluir (opcional se all=true, ou 'todas'/'all')",
+          },
+          all: {
+            type: "boolean",
+            description: "Defina como true se o usuário pediu para apagar tudo, zerar tudo ou limpar as movimentações.",
+          },
           confirmed: {
             type: "boolean",
-            description: "Se o usuário confirmou explicitamente a exclusão",
+            description: "Se o usuário confirmou explicitamente a exclusão (ex: respondeu 'sim', 'confirmo', 'pode apagar').",
           },
         },
-        required: ["transactionId"],
       },
     },
   },
@@ -231,9 +239,21 @@ export async function executeAiTool(
     case "atualizar_meta":
       return await updateGoal(userId, args, dbClient);
 
-    case "excluir_movimentacao": {
-      const transactionId = String(args.transactionId || "");
+    case "excluir_movimentacao":
+    case "zerar_movimentacoes":
+    case "apagar_tudo": {
+      const transactionId = typeof args.transactionId === "string" ? args.transactionId.trim() : "";
+      const isAll =
+        Boolean(args.all) ||
+        transactionId === "all" ||
+        transactionId === "todas" ||
+        transactionId === "*" ||
+        toolName !== "excluir_movimentacao";
       const confirmed = Boolean(args.confirmed);
+
+      if (isAll || !transactionId) {
+        return await clearAllTransactions(userId, confirmed, dbClient);
+      }
       return await deleteTransaction(userId, transactionId, confirmed, dbClient);
     }
 

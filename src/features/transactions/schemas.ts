@@ -72,7 +72,8 @@ export const categoryExpensesSchema = z.object({
 export type CategoryExpensesInput = z.infer<typeof categoryExpensesSchema>;
 
 export const deleteTransactionSchema = z.object({
-  transactionId: z.string().trim().min(1, "ID da movimentação é obrigatório."),
+  transactionId: z.string().trim().optional(),
+  all: z.boolean().default(false),
   confirmed: z.boolean().default(false),
 });
 
